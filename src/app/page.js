@@ -26,7 +26,7 @@ export default function HomePage() {
     fetchStudents();
   }, []);
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -41,7 +41,7 @@ export default function HomePage() {
     fetchStudents();
   };
 
-  const handleRemove = async id => {
+  const handleRemove = async (id) => {
     setLoading(true);
     await fetch("/api/students", {
       method: "DELETE",
@@ -51,7 +51,6 @@ export default function HomePage() {
     fetchStudents();
   };
 
-  // Query handlers
   const queries = [
     { label: "All CS Students", query: "?dept=CS" },
     { label: "Age > 25", query: "?ageGt=25" },
@@ -64,16 +63,16 @@ export default function HomePage() {
   ];
 
   return (
-    <main className="h-screen bg-gradient-to-br from-gray-900 to-indigo-950 p-4 overflow-hidden text-gray-100">
+    <main className="h-screen bg-gradient-to-br from-gray-900 to-indigo-950 p-4 overflow-hidden text-gray-100 flex flex-col">
       <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 flex items-center">
         <span className="mr-2">⚡</span>
         Student Management
         <span className="ml-2">⚡</span>
       </h1>
-      
-      <div className="flex h-full gap-4">
-        {/* Left side: Form and Filters */}
-        <div className="w-1/4 flex flex-col gap-3">
+
+      <div className="flex flex-1 gap-4 overflow-hidden min-h-0">
+        {/* Left Sidebar */}
+        <div className="w-1/4 flex flex-col gap-3 overflow-y-auto">
           {/* Add Student Form */}
           <div className="bg-gray-900/70 p-4 rounded-lg border border-cyan-500/30 backdrop-blur-sm shadow-lg shadow-cyan-500/20 flex-shrink-0">
             <h2 className="text-lg font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400 flex items-center">
@@ -86,7 +85,7 @@ export default function HomePage() {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Name"
-                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+                className="input-style"
               />
               <input
                 name="age"
@@ -94,14 +93,14 @@ export default function HomePage() {
                 onChange={handleChange}
                 placeholder="Age"
                 type="number"
-                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+                className="input-style"
               />
               <input
                 name="dept"
                 value={form.dept}
                 onChange={handleChange}
                 placeholder="Dept"
-                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+                className="input-style"
               />
               <input
                 name="gpa"
@@ -110,7 +109,7 @@ export default function HomePage() {
                 placeholder="GPA"
                 type="number"
                 step="0.01"
-                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+                className="input-style"
               />
               <button
                 onClick={handleAdd}
@@ -120,15 +119,15 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-          
-          {/* Filter Buttons */}
+
+          {/* Filters */}
           <div className="bg-gray-900/70 p-4 rounded-lg shadow-lg border border-purple-500/30 backdrop-blur-sm shadow-purple-500/20 flex-1 overflow-y-auto">
             <h2 className="text-lg font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
               <span className="mr-2">🔍</span>
               Filters
             </h2>
             <div className="flex flex-col gap-2">
-              {queries.map(q => (
+              {queries.map((q) => (
                 <button
                   key={q.label}
                   className="px-3 py-1 bg-gray-800 border border-indigo-500/30 text-gray-200 text-xs font-medium rounded shadow-md shadow-indigo-500/20 hover:bg-indigo-900/50 transition focus:outline-none focus:ring-1 focus:ring-indigo-400 transform hover:translate-x-1 duration-200"
@@ -140,16 +139,14 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-        
-        {/* Right side: Table and Department Counts */}
-        <div className="w-3/4 flex flex-col gap-3">
-          {/* Status Messages */}
+
+        {/* Right Side */}
+        <div className="w-3/4 flex flex-col gap-3 overflow-hidden min-h-0">
           <div className="h-6">
             {error && <div className="text-red-400 text-sm font-medium">{error}</div>}
             {loading && <div className="text-cyan-400 text-sm animate-pulse">Loading...</div>}
           </div>
-          
-          {/* Department counts */}
+
           {counts.length > 0 && (
             <div className="bg-gray-900/70 p-3 rounded-lg shadow-lg border border-blue-500/30 backdrop-blur-sm shadow-blue-500/20">
               <h2 className="font-bold mb-1 text-sm text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 flex items-center">
@@ -157,7 +154,7 @@ export default function HomePage() {
                 Student Count by Department
               </h2>
               <div className="flex flex-wrap gap-2">
-                {counts.map(c => (
+                {counts.map((c) => (
                   <div key={c._id} className="bg-gray-800/80 px-2 py-1 rounded text-gray-200 font-medium text-xs shadow-sm border border-blue-500/20 flex items-center">
                     <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-1"></span>
                     <span className="font-bold">{c._id || 'Unknown'}:</span> {c.count}
@@ -166,9 +163,9 @@ export default function HomePage() {
               </div>
             </div>
           )}
-          
-          {/* Students Table */}
-          <div className="bg-gray-900/70 rounded-lg shadow-lg border border-indigo-500/30 backdrop-blur-sm shadow-indigo-500/20 flex-1 overflow-y-auto">
+
+          {/* Scrollable Table Section */}
+          <div className="flex-1 overflow-y-auto bg-gray-900/70 rounded-lg shadow-lg border border-indigo-500/30 backdrop-blur-sm shadow-indigo-500/20">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-indigo-900/50 text-gray-100 border-b border-indigo-500/30">
@@ -180,7 +177,7 @@ export default function HomePage() {
                 </tr>
               </thead>
               <tbody>
-                {students.map(student => (
+                {students.map((student) => (
                   <tr key={student._id} className="border-b border-gray-700/50 hover:bg-indigo-900/20 text-gray-300 transition duration-150">
                     <td className="py-2 px-3 font-medium text-cyan-300">{student.name}</td>
                     <td className="py-2 px-3">{student.age}</td>
@@ -206,6 +203,24 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Input style reused */}
+      <style jsx>{`
+        .input-style {
+          background: rgba(31, 41, 55, 0.8);
+          color: #e5e7eb;
+          border-radius: 0.375rem;
+          padding: 0.25rem 0.75rem;
+          font-size: 0.875rem;
+          outline: none;
+        }
+        .input-style::placeholder {
+          color: #6b7280;
+        }
+        .input-style:focus {
+          box-shadow: 0 0 0 1px #22d3ee;
+        }
+      `}</style>
     </main>
   );
 }
