@@ -1,103 +1,211 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
 
-export default function Home() {
+export default function HomePage() {
+  const [students, setStudents] = useState([]);
+  const [form, setForm] = useState({ name: "", age: "", dept: "", gpa: "" });
+  const [counts, setCounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const fetchStudents = async (query = "") => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/students${query}`);
+      const data = await res.json();
+      setStudents(data.students || []);
+      setCounts(data.counts || []);
+    } catch (e) {
+      setError("Failed to fetch students");
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleAdd = async () => {
+    setLoading(true);
+    await fetch("/api/students", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    setForm({ name: "", age: "", dept: "", gpa: "" });
+    fetchStudents();
+  };
+
+  const handleRemove = async id => {
+    setLoading(true);
+    await fetch("/api/students", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    fetchStudents();
+  };
+
+  // Query handlers
+  const queries = [
+    { label: "All CS Students", query: "?dept=CS" },
+    { label: "Age > 25", query: "?ageGt=25" },
+    { label: "CGPA ≥ 2.7", query: "?gpaGte=2.7" },
+    { label: "Math or Physics Dept", query: "?depts=Math,Physics" },
+    { label: "Name starts with 'A'", query: "?nameStartsWith=A" },
+    { label: "Count by Dept", query: "?countByDept=1" },
+    { label: "Sort by CGPA Desc", query: "?sortByGpaDesc=1" },
+    { label: "Show All", query: "" },
+  ];
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <main className="h-screen bg-gradient-to-br from-gray-900 to-indigo-950 p-4 overflow-hidden text-gray-100">
+      <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500 mb-2 flex items-center">
+        <span className="mr-2">⚡</span>
+        Student Management
+        <span className="ml-2">⚡</span>
+      </h1>
+      
+      <div className="flex h-full gap-4">
+        {/* Left side: Form and Filters */}
+        <div className="w-1/4 flex flex-col gap-3">
+          {/* Add Student Form */}
+          <div className="bg-gray-900/70 p-4 rounded-lg border border-cyan-500/30 backdrop-blur-sm shadow-lg shadow-cyan-500/20 flex-shrink-0">
+            <h2 className="text-lg font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-cyan-400 flex items-center">
+              <span className="mr-2">+</span>
+              Add Student
+            </h2>
+            <div className="flex flex-col gap-2">
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                placeholder="Name"
+                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+              />
+              <input
+                name="age"
+                value={form.age}
+                onChange={handleChange}
+                placeholder="Age"
+                type="number"
+                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+              />
+              <input
+                name="dept"
+                value={form.dept}
+                onChange={handleChange}
+                placeholder="Dept"
+                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+              />
+              <input
+                name="gpa"
+                value={form.gpa}
+                onChange={handleChange}
+                placeholder="GPA"
+                type="number"
+                step="0.01"
+                className="border-0 bg-gray-800/80 rounded px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-400 placeholder-gray-500 text-gray-200"
+              />
+              <button
+                onClick={handleAdd}
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-3 py-1 rounded font-medium shadow-md shadow-cyan-500/30 transition text-sm transform hover:scale-105 duration-200"
+              >
+                Add Student
+              </button>
+            </div>
+          </div>
+          
+          {/* Filter Buttons */}
+          <div className="bg-gray-900/70 p-4 rounded-lg shadow-lg border border-purple-500/30 backdrop-blur-sm shadow-purple-500/20 flex-1 overflow-y-auto">
+            <h2 className="text-lg font-bold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 flex items-center">
+              <span className="mr-2">🔍</span>
+              Filters
+            </h2>
+            <div className="flex flex-col gap-2">
+              {queries.map(q => (
+                <button
+                  key={q.label}
+                  className="px-3 py-1 bg-gray-800 border border-indigo-500/30 text-gray-200 text-xs font-medium rounded shadow-md shadow-indigo-500/20 hover:bg-indigo-900/50 transition focus:outline-none focus:ring-1 focus:ring-indigo-400 transform hover:translate-x-1 duration-200"
+                  onClick={() => fetchStudents(q.query)}
+                >
+                  {q.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        
+        {/* Right side: Table and Department Counts */}
+        <div className="w-3/4 flex flex-col gap-3">
+          {/* Status Messages */}
+          <div className="h-6">
+            {error && <div className="text-red-400 text-sm font-medium">{error}</div>}
+            {loading && <div className="text-cyan-400 text-sm animate-pulse">Loading...</div>}
+          </div>
+          
+          {/* Department counts */}
+          {counts.length > 0 && (
+            <div className="bg-gray-900/70 p-3 rounded-lg shadow-lg border border-blue-500/30 backdrop-blur-sm shadow-blue-500/20">
+              <h2 className="font-bold mb-1 text-sm text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 flex items-center">
+                <span className="mr-2">📊</span>
+                Student Count by Department
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {counts.map(c => (
+                  <div key={c._id} className="bg-gray-800/80 px-2 py-1 rounded text-gray-200 font-medium text-xs shadow-sm border border-blue-500/20 flex items-center">
+                    <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-1"></span>
+                    <span className="font-bold">{c._id || 'Unknown'}:</span> {c.count}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* Students Table */}
+          <div className="bg-gray-900/70 rounded-lg shadow-lg border border-indigo-500/30 backdrop-blur-sm shadow-indigo-500/20 flex-1 overflow-y-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-indigo-900/50 text-gray-100 border-b border-indigo-500/30">
+                  <th className="py-2 px-3 text-left">Name</th>
+                  <th className="py-2 px-3 text-left">Age</th>
+                  <th className="py-2 px-3 text-left">Dept</th>
+                  <th className="py-2 px-3 text-left">GPA</th>
+                  <th className="py-2 px-3 text-left">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map(student => (
+                  <tr key={student._id} className="border-b border-gray-700/50 hover:bg-indigo-900/20 text-gray-300 transition duration-150">
+                    <td className="py-2 px-3 font-medium text-cyan-300">{student.name}</td>
+                    <td className="py-2 px-3">{student.age}</td>
+                    <td className="py-2 px-3">{student.dept}</td>
+                    <td className="py-2 px-3">{student.gpa}</td>
+                    <td className="py-2 px-3">
+                      <button
+                        className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white px-2 py-1 rounded text-xs font-medium shadow-md shadow-red-500/30 transform hover:scale-105 transition duration-200"
+                        onClick={() => handleRemove(student._id)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {students.length === 0 && (
+                  <tr>
+                    <td colSpan="5" className="text-center py-4 text-gray-500 text-sm">No students found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 }
