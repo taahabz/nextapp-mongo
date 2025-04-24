@@ -2,18 +2,11 @@ import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
 export async function GET(request) {
+  const { searchParams } = new URL(request.url);
   const client = await clientPromise;
   const db = client.db();
-
-  // Parse query params
+  
   let query = {};
-  let sort = {};
-  let countByDept = false;
-  if (request && request.nextUrl) {
-    const url = new URL(request.nextUrl);
-    const params = url.searchParams;
-    if (params.get("dept")) query.dept = params.get("dept");
-    if (params.get("ageGt")) query.age = { $gt: Number(params.get("ageGt")) };
     if (params.get("gpaGte")) query.gpa = { $gte: params.get("gpaGte") };
     if (params.get("depts")) query.dept = { $in: params.get("depts").split(",") };
     if (params.get("nameStartsWith")) query.name = { $regex: `^${params.get("nameStartsWith")}`, $options: "i" };
@@ -22,14 +15,48 @@ export async function GET(request) {
   }
 
   if (countByDept) {
-    const counts = await db.collection("students").aggregate([
-      { $group: { _id: "$dept", count: { $sum: 1 } } }
-    ]).toArray();
-    return Response.json({ counts });
+  let pipeline = [];
+  let options = {};
+
+  // Handle different query parameters
+  if (searchParams.has("dept")) {
+    query.dept = searchParams.get("dept");
+  }
+  
+  if (searchParams.has("ageGt")) {
+    query.age = { $gt: parseInt(searchParams.get("ageGt")) };
+  }
+  
+  if (searchParams.has("gpaGte")) {
+    query.gpa = { $gte: parseFloat(searchParams.get("gpaGte")) };
+  }
+  
+  if (searchParams.has("depts")) {
+    const depts = searchParams.get("depts").split(",");
+    query.dept = { $in: depts };
+  }
+  
+  if (searchParams.has("nameStartsWith")) {
+    query.name = { $regex: `^${searchParams.get("nameStartsWith")}`, $options: 'i' };
   }
 
-  const students = await db.collection("students").find(query).sort(sort).toArray();
-  return Response.json({ students });
+  if (searchParams.has("sortByGpaDesc")) {
+    options.sort = { gpa: -1 };
+  }
+
+  // Get students based on query
+  const students = await db.collection("students").find(query, options).toArray();
+  
+  // If counting by department is requested
+  let counts = [];
+  if (searchParams.has("countByDept")) {
+    counts = await db.collection("students").aggregate([
+      { $group: { _id: "$dept", count: { $sum: 1 } } },
+      { $sort: { _id: 1 } }
+    ]).toArray();
+  }
+
+  return Response.json({ students, counts });
 }
 
 export async function POST(request) {
@@ -53,3 +80,4 @@ export async function DELETE(request) {
   await db.collection("students").deleteOne({ _id: new ObjectId(id) });
   return Response.json({ success: true });
 }
+

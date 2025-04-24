@@ -28,7 +28,12 @@ export default function HomePage() {
   }, []);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    // Ensure dept is always uppercase
+    if (e.target.name === "dept") {
+      setForm({ ...form, dept: e.target.value.toUpperCase() });
+    } else {
+      setForm({ ...form, [e.target.name]: e.target.value });
+    }
   };
 
   const handleAdd = async () => {
@@ -68,7 +73,7 @@ export default function HomePage() {
     { label: "All CS Students", query: "?dept=CS" },
     { label: "Age > 25", query: "?ageGt=25" },
     { label: "CGPA ≥ 2.7", query: "?gpaGte=2.7" },
-    { label: "Math or Physics Dept", query: "?depts=Math,Physics" },
+    { label: "Math or Physics Dept", query: "?depts=MATH,PHYSICS" },
     { label: "Name starts with 'A'", query: "?nameStartsWith=A" },
     { label: "Count by Dept", query: "?countByDept=1" },
     { label: "Sort by CGPA Desc", query: "?sortByGpaDesc=1" },
