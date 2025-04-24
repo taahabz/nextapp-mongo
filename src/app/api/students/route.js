@@ -7,14 +7,6 @@ export async function GET(request) {
   const db = client.db();
   
   let query = {};
-    if (params.get("gpaGte")) query.gpa = { $gte: params.get("gpaGte") };
-    if (params.get("depts")) query.dept = { $in: params.get("depts").split(",") };
-    if (params.get("nameStartsWith")) query.name = { $regex: `^${params.get("nameStartsWith")}`, $options: "i" };
-    if (params.get("sortByGpaDesc")) sort.gpa = -1;
-    if (params.get("countByDept")) countByDept = true;
-  }
-
-  if (countByDept) {
   let pipeline = [];
   let options = {};
 
